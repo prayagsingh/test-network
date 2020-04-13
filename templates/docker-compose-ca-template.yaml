@@ -1,0 +1,28 @@
+version: '2'
+
+networks:
+  byfn:
+
+services:
+  ca.organization_domain:
+      container_name: ca.organization_domain
+      image: hyperledger/fabric-ca:$IMAGE_TAG
+      command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
+      environment:
+         - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+         - FABRIC_LOGGING_SPEC=grpc=debug:info        
+         #- FABRIC_CA_SERVER_HOME=/etc/hyperledger/fabric-ca
+         - FABRIC_CA_SERVER_TLS_ENABLED=true
+         - FABRIC_CA_SERVER_PORT=port_number
+         - FABRIC_CA_SERVER_CA_NAME=ca.organization_domain
+         - FABRIC_CA_SERVER_CSR_CN=ca.organization_domain
+         - FABRIC_CA_SERVER_CSR_HOSTS=ca.organization_domain
+         - FABRIC_CA_SERVER_DEBUG=true
+         - GODEBUG=netdns=go
+      volumes:
+         - ../crypto-config/fabric-ca/organization_domain:/etc/hyperledger/fabric-ca-server
+      ports:
+         - "port_number:port_number"
+      networks:
+         - byfn
+

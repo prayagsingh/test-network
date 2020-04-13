@@ -1,0 +1,28 @@
+version: '2'
+
+networks:
+  byfn:
+
+services:
+  ca.alpha.com:
+      container_name: ca.alpha.com
+      image: hyperledger/fabric-ca:$IMAGE_TAG
+      command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
+      environment:
+         - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+         - FABRIC_LOGGING_SPEC=grpc=debug:info        
+         #- FABRIC_CA_SERVER_HOME=/etc/hyperledger/fabric-ca
+         - FABRIC_CA_SERVER_TLS_ENABLED=true
+         - FABRIC_CA_SERVER_PORT=6054
+         - FABRIC_CA_SERVER_CA_NAME=ca.alpha.com
+         - FABRIC_CA_SERVER_CSR_CN=ca.alpha.com
+         - FABRIC_CA_SERVER_CSR_HOSTS=ca.alpha.com
+         - FABRIC_CA_SERVER_DEBUG=true
+         - GODEBUG=netdns=go
+      volumes:
+         - ../crypto-config/fabric-ca/alpha.com:/etc/hyperledger/fabric-ca-server
+      ports:
+         - "6054:6054"
+      networks:
+         - byfn
+

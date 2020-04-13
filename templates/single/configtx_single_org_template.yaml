@@ -1,0 +1,226 @@
+
+Organizations:
+
+    - &OrdererOrg
+        Name: OrdererOrg
+        ID: OrdererMSP
+        MSPDir: crypto-config/ordererOrganizations/organization_domain/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('OrdererMSP.member')"
+            Writers:
+                Type: Signature
+                Rule: "OR('OrdererMSP.member')"
+            Admins:
+                Type: Signature
+                Rule: "OR('OrdererMSP.admin')"
+
+    - &organization_name
+        # DefaultOrg defines the organization which is used in the sampleconfig
+        # of the fabric.git development environment
+        Name: organization_name
+
+        # ID to load the MSP definition as
+        ID: organization_nameMSP
+
+        MSPDir: crypto-config/peerOrganizations/organization_small_name.organization_domain/msp
+
+        # Policies defines the set of policies at this level of the config tree
+        # For organization policies, their canonical path is usually
+        #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('organization_nameMSP.member')"
+            Writers:
+                Type: Signature
+                Rule: "OR('organization_nameMSP.member')"
+            Admins:
+                Type: Signature
+                Rule: "OR('organization_nameMSP.admin')"
+
+        # leave this flag set to true.
+        AnchorPeers:
+            # AnchorPeers defines the location of peers which can be used
+            # for cross org gossip communication.  Note, this value is only
+            # encoded in the genesis block in the Application section context
+            - Host: org1_anchorpeer_address
+              Port: 7051
+
+Capabilities:
+    # Channel capabilities apply to both the orderers and the peers and must be
+    # supported by both.
+    # Set the value of the capability to true to require it.
+    Channel: &ChannelCapabilities
+        V1_4_3: true
+        V1_3: true
+        V1_1: true
+
+    # Orderer capabilities apply only to the orderers, and may be safely
+    # used with prior release peers.
+    # Set the value of the capability to true to require it.
+    Orderer: &OrdererCapabilities
+        V1_4_2: true
+
+    # Application capabilities apply only to the peer network, and may be safely
+    # used with prior release orderers.
+    # Set the value of the capability to true to require it.
+    Application: &ApplicationCapabilities
+        V1_4_2: true
+        V1_3: false
+        V1_2: false
+        V1_1: false
+
+################################################################################
+#
+#   SECTION: Application
+#
+#   - This section defines the values to encode into a config transaction or
+#   genesis block for application related parameters
+#
+################################################################################
+Application: &ApplicationDefaults
+
+    # Organizations is the list of orgs which are defined as participants on
+    # the application side of the network
+    Organizations:
+
+    # Policies defines the set of policies at this level of the config tree
+    # For Application policies, their canonical path is
+    #   /Channel/Application/<PolicyName>
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "ANY Admins"
+
+################################################################################
+#
+#   SECTION: Orderer
+#
+#   - This section defines the values to encode into a config transaction or
+#   genesis block for orderer related parameters
+#
+################################################################################
+Orderer: &OrdererDefaults
+  OrdererType: etcdraft
+  Addresses:
+    - orderer1_address:7050
+    - orderer2_address:8050
+    - orderer3_address:9050
+  BatchTimeout: 2s
+  BatchSize:
+    MaxMessageCount: 50
+    AbsoluteMaxBytes: 30 MB
+    PreferredMaxBytes: 512 KB
+  EtcdRaft:
+    Consenters:
+    - Host: orderer1_address
+      Port: 7050
+      ClientTLSCert: crypto-config/ordererOrganizations/organization_domain/orderers/orderer1.organization_domain/tls/server.crt
+      ServerTLSCert: crypto-config/ordererOrganizations/organization_domain/orderers/orderer1.organization_domain/tls/server.crt
+    - Host: orderer2_address
+      Port: 8050
+      ClientTLSCert: crypto-config/ordererOrganizations/organization_domain/orderers/orderer2.organization_domain/tls/server.crt
+      ServerTLSCert: crypto-config/ordererOrganizations/organization_domain/orderers/orderer2.organization_domain/tls/server.crt
+    - Host: orderer3_address
+      Port: 9050
+      ClientTLSCert: crypto-config/ordererOrganizations/organization_domain/orderers/orderer3.organization_domain/tls/server.crt
+      ServerTLSCert: crypto-config/ordererOrganizations/organization_domain/orderers/orderer3.organization_domain/tls/server.crt      
+    
+    # Options to be specified for all the etcd/raft nodes. The values here
+    # are the defaults for all new channels and can be modified on a
+    # per-channel basis via configuration updates.
+    Options:
+        # TickInterval is the time interval between two Node.Tick invocations.
+        TickInterval: 500ms
+
+        # ElectionTick is the number of Node.Tick invocations that must pass
+        # between elections. That is, if a follower does not receive any
+        # message from the leader of current term before ElectionTick has
+        # elapsed, it will become candidate and start an election.
+        # ElectionTick must be greater than HeartbeatTick.
+        ElectionTick: 10
+
+        # HeartbeatTick is the number of Node.Tick invocations that must
+        # pass between heartbeats. That is, a leader sends heartbeat
+        # messages to maintain its leadership every HeartbeatTick ticks.
+        HeartbeatTick: 1
+
+        # MaxInflightBlocks limits the max number of in-flight append messages
+        # during optimistic replication phase.
+        MaxInflightBlocks: 5
+
+        # SnapshotIntervalSize defines number of bytes per which a snapshot is taken
+        SnapshotIntervalSize: 20 MB  
+  Organizations:
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "ANY Admins"
+        BlockValidation:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+    # Capabilities:
+    #     <<: *OrdererCapabilities
+################################################################################
+#
+#   CHANNEL
+#
+#   This section defines the values to encode into a config transaction or
+#   genesis block for channel related parameters.
+#
+################################################################################
+Channel: &ChannelDefaults
+    # Policies defines the set of policies at this level of the config tree
+    # For Channel policies, their canonical path is
+    #   /Channel/<PolicyName>
+    Policies:
+        # Who may invoke the 'Deliver' API
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        # Who may invoke the 'Broadcast' API
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        # By default, who may modify elements at this config level
+        Admins:
+            Type: ImplicitMeta
+            Rule: "ANY Admins"
+
+    Capabilities:
+        <<: *ChannelCapabilities
+
+Profiles:
+    OrdererGenesis:
+        <<: *ChannelDefaults
+        Orderer:
+            <<: *OrdererDefaults
+            Organizations:
+                - *OrdererOrg
+        Consortiums:
+            organization_nameConsortium:
+                Organizations:
+                    - *organization_name
+            
+    Channel:
+        Consortium: organization_nameConsortium
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - *organization_name
+            Capabilities:
+                <<: *ApplicationCapabilities

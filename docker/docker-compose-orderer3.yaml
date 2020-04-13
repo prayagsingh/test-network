@@ -1,0 +1,67 @@
+version: '2'
+
+networks: 
+  byfn:
+
+volumes:
+  orderer3.alpha.com:
+
+services:
+
+  orderer3.alpha.com:
+    container_name: orderer3.alpha.com
+    hostname: orderer3.alpha.com
+    image: hyperledger/fabric-orderer:$IMAGE_TAG
+    restart: always
+    environment:
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${COMPOSE_PROJECT_NAME}_byfn
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - ORDERER_HOST=orderer3.alpha.com
+      - ORDERER_GENERAL_LOGLEVEL=debug
+      - FABRIC_LOGGING_SPEC=debug
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LISTENPORT=9050
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=AlphaMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      - ORDERER_GENERAL_GENESISPROFILE=Alpha
+      - CONFIGTX_ORDERER_ADDRESSES=[127.0.0.1:9050]
+      - ORDERER_LOGGING_GRPC=debug
+      #- FABRIC_CFG_PATH=/var/hyperledger/orderer/orderer3Config
+      - FABRIC_CFG_PATH=/etc/hyperledger/fabric
+      - ORDERER_OPERATIONS_LISTENADDRESS=0.0.0.0:6443
+
+        # enabled TLS
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      #- ORDERER_KAFKA_TOPIC_REPLICATIONFACTOR=1
+      #- ORDERER_KAFKA_VERBOSE=true
+      - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - CORE_CHAINCODE_LOGGING_LEVEL=DEBUG
+      - CORE_CHAINCODE_LOGGING_SHIM=DEBUG
+      - ORDERER_TLS_CLIENTROOTCAS_FILES=/var/hyperledger/users/Admin.alpha.com/tls/ca.crt
+      - ORDERER_TLS_CLIENTCERT_FILE=/var/hyperledger/users/Admin.alpha.com/tls/server.crt
+      - ORDERER_TLS_CLIENTKEY_FILE=/var/hyperledger/users/Admin.alpha.com/tls/server.key
+      - GODEBUG=netdns=go
+
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    volumes:
+      - ../channel-artifacts/:/var/hyperledger/configs
+      - ../system-genesis-block/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+      - ../crypto-config/ordererOrganizations/alpha.com/orderers/orderer3.alpha.com/msp:/var/hyperledger/orderer/msp
+      - ../crypto-config/ordererOrganizations/alpha.com/orderers/orderer3.alpha.com/tls/:/var/hyperledger/orderer/tls
+      - ../crypto-config/ordererOrganizations/alpha.com/users:/var/hyperledger/users
+      #- ./orderer3Config:/var/hyperledger/orderer/orderer3Config
+      - orderer3.alpha.com:/var/hyperledger/production/orderer
+    ports:
+      - 9050:9050
+      - 6443:6443
+
+    networks: 
+      - byfn

@@ -1,0 +1,39 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# ---------------------------------------------------------------------------
+# "OrdererOrgs" - Definition of organizations managing orderer nodes
+# ---------------------------------------------------------------------------
+OrdererOrgs:
+  # ---------------------------------------------------------------------------
+  # Orderer
+  # ---------------------------------------------------------------------------
+  - Name: orderer_organization_name
+    Domain: orderer_organization_domain
+    EnableNodeOUs: true
+    # ---------------------------------------------------------------------------
+    # "Specs" - See PeerOrgs for complete description
+    # ---------------------------------------------------------------------------
+    Specs:
+      - Hostname: orderer1
+        CommonName: orderer1.orderer_organization_domain
+        SANS:
+          - "localhost"
+          - "127.0.0.1"
+          - "orderer1.orderer_organization_domain"
+
+      - Hostname: orderer2
+        CommonName: orderer2.orderer_organization_domain
+        SANS:
+          - "localhost"
+          - "127.0.0.1"
+          - "orderer2.orderer_organization_domain"
+
+      - Hostname: orderer3
+        CommonName: orderer3.orderer_organization_domain
+        SANS:
+          - "localhost"
+          - "127.0.0.1"
+          - "orderer3.orderer_organization_domain"
